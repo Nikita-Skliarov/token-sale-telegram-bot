@@ -82,3 +82,8 @@ async def Click_on_name_token(update: Update, context: ContextTypes.DEFAULT_TYPE
         f"<b>Не успустите шанс заработать здесь и сейчас!</b> 🚀"
     )
     await update.callback_query.message.reply_text(message, parse_mode='HTML', reply_markup=selected_token_keyboard_m)
+    
+async def Token_sale_procedure(update: Update, context: ContextTypes.DEFAULT_TYPE, coin_name: str):
+    query = update.callback_query
+    await query.answer()
+    # ask for amount of coins user want to change
