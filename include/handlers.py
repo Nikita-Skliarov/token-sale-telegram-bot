@@ -35,3 +35,15 @@ async def Continue(update: Update, context: CallbackContext):
     
     except Exception as e:
         await query.edit_message_text(text=f"Ошибка при чтении файла JSON: {str(e)}")
+        
+async def Click_on_name_token(update: Update, context: ContextTypes.DEFAULT_TYPE, coin_name: str):
+    query = update.callback_query
+    await query.answer()
+    coin_info = coins_data[coin_name]
+    message = (
+        f"<b><u>{coin_name}</u></b>\n\n"
+        f"<i>Цена за ({coin_info['Количество']}):</i>\n"
+        f"<b>{coin_info['Цена']} $</b>\n\n"
+        f"<i>В наличии!</i>"
+    )
+    await update.callback_query.message.reply_text(message, parse_mode='HTML')

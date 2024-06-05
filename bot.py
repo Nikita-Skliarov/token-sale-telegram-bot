@@ -4,7 +4,7 @@ import json
 from include.json_parse import coins_data
 
 # commands.py has all replies to / commands
-from include.handlers import Start, Continue
+from include.handlers import Start, Continue, Click_on_name_token
 
 # telegram bot library
 import logging
@@ -21,10 +21,11 @@ if __name__ == '__main__':
     
     start_handler = CommandHandler('Start', Start)
     continue_handler = CallbackQueryHandler(Continue, pattern="continue")
-    
-    # add handlers for json tokens names
-    for name in coins_data:
-        token_handler = CallbackQueryHandler(name, pattern=name)
+     
     application.add_handler(start_handler)
     application.add_handler(continue_handler)
+        # Add handlers for each token name
+    for name in coins_data:
+        handler = CallbackQueryHandler(lambda update, context, name=name: Click_on_name_token(update, context, name), pattern=name)
+        application.add_handler(handler)  
     application.run_polling()
