@@ -10,12 +10,14 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 
 ############################ KEYBOARDS MARKUPS ############
 
+# back button
+back_button = InlineKeyboardButton("🔙 Назад", callback_data="back")
+
 # /start (default keyboard)
 start_keyboard = [
-    [InlineKeyboardButton("🏠 Домой", callback_data='home')],
     [InlineKeyboardButton("📊 Статус продажи", callback_data='sale_status')],
     [InlineKeyboardButton("💎 Продажа токенов", callback_data='token_sale')],
-    [InlineKeyboardButton("💰 Продажа криптовалюты", callback_data='crypto_sale')]
+    #[InlineKeyboardButton("💰 Продажа криптовалюты", callback_data='crypto_sale')]
 ]
 start_keyboard_m = InlineKeyboardMarkup(start_keyboard)
 
@@ -26,7 +28,13 @@ token_sale_keyboard = [
 ]
 token_sale_keyboard_m = InlineKeyboardMarkup(token_sale_keyboard)
 
-# 
+# Selected token sale
+selected_token_keyboard = [
+    [InlineKeyboardButton("💎 Продать", callback_data="sale")],
+    [InlineKeyboardButton("🪙 Назад к токенам", callback_data="token_sale")],
+    [InlineKeyboardButton("🏠 Домой", callback_data='home')],
+]
+selected_token_keyboard_m = InlineKeyboardMarkup(selected_token_keyboard)
 
 ############################ KEYBOARDS MARKUPS ############
 
@@ -34,9 +42,16 @@ token_sale_keyboard_m = InlineKeyboardMarkup(token_sale_keyboard)
 # /start message
 async def Start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = ("Приветствую!\n"
-                    "С помощью этого бота Вы сможете продать токены и криптовалюту.\n"
-                    "Чтобы продолжить, нажми на кнопку внизу и выбери следующие варианты.")
-    await update.message.reply_text(message_text, reply_markup=start_keyboard_m)
+        "С помощью этого бота Вы сможете продать токены и криптовалюту.\n"
+        "Чтобы продолжить, нажми на кнопку внизу и выбери следующие варианты.")
+    # Check if the update is from a callback query
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.message.reply_text(message_text, reply_markup=start_keyboard_m)
+    else:
+        # If not a callback query, handle as before
+        await update.message.reply_text(message_text, reply_markup=start_keyboard_m)
 
 # Command handler for /continue
 async def Token_sale(update: Update, context: CallbackContext):
@@ -64,6 +79,6 @@ async def Click_on_name_token(update: Update, context: ContextTypes.DEFAULT_TYPE
         f"🔹 <i>Безопасные транзакции</i>\n"
         f"🔹 <i>Гарантированный рост стоимости</i>\n"
         f"🔹 <i>Поддержка 24/7</i>\n\n"
-        f"<b>не успустите шанс заработать здесь и сейчас!</b> 🚀"
+        f"<b>Не успустите шанс заработать здесь и сейчас!</b> 🚀"
     )
-    await update.callback_query.message.reply_text(message, parse_mode='HTML')
+    await update.callback_query.message.reply_text(message, parse_mode='HTML', reply_markup=selected_token_keyboard_m)

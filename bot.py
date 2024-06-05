@@ -20,8 +20,10 @@ if __name__ == '__main__':
     application = ApplicationBuilder().token('7370415604:AAH21Q0Iv9FPdGD0eCZPhUqGt58PrmyRHDk').build()
     
     start_handler = CommandHandler('Start', Start)
+    home_handler = CallbackQueryHandler(Start, pattern="home")
     token_sale_handler = CallbackQueryHandler(Token_sale, pattern="token_sale")
-     
+    
+    application.add_handler(home_handler)
     application.add_handler(start_handler)
     application.add_handler(token_sale_handler)
         # Add handlers for each token name
