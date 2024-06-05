@@ -1,7 +1,10 @@
 import json
 
+#import json
+from include.json_parse import coins_data
+
 # commands.py has all replies to / commands
-from handlers import Start, Continue
+from include.handlers import Start, Continue
 
 # telegram bot library
 import logging
@@ -12,10 +15,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-
-# init prices
-with open("prices.json", "r", encoding="utf-8") as json_data:
-    coins_data = json.load(json_data)
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('7370415604:AAH21Q0Iv9FPdGD0eCZPhUqGt58PrmyRHDk').build()
