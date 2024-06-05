@@ -1,5 +1,6 @@
 
 import logging
+import json
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext
 
@@ -17,11 +18,20 @@ async def Continue(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()  # Acknowledge the callback query
     reply = "Выберите токен, который хотите обменять."
-    keyboard = [
-        [InlineKeyboardButton("HAMSTER", callback_data="HAMSTER")],
-        [InlineKeyboardButton("MEMECOIN", callback_data="MEMECOIN")],
-        [InlineKeyboardButton("MEMEFICOIN", callback_data="MEMEFICOIN")],
-        [InlineKeyboardButton("TON", callback_data="TON")]
-    ]
-    keyboard_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(text=reply, reply_markup=keyboard_markup)
+
+    # Read the JSON file and generate keyboard buttons
+    try:
+        with open("prices.json", "r", encoding="utf-8") as json_data:
+            coins_data = json.load(json_data)
+        
+        keyboard = [
+            [InlineKeyboardButton(name, callback_data=name)]
+            for name in coins_data.keys()
+        ]
+        
+        keyboard_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(text=reply, reply_markup=keyboard_markup)
+    
+    except Exception as e:
+        await query.edit_message_text(text=f"Ошибка при чтении файла JSON: {str(e)}")
+        
