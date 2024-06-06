@@ -1,34 +1,25 @@
-
 import logging
-import json
-
-#import json
+import random
 from include.json_parse import coins_data
-
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext
+from telegram.ext import ContextTypes, CallbackContext, ConversationHandler
+
+TOKEN_SALE_PROCEDURE, TOKEN_COUNT = range(2)
 
 ############################ KEYBOARDS MARKUPS ############
 
-# back button
-back_button = InlineKeyboardButton("🔙 Назад", callback_data="back")
-
-# /start (default keyboard)
 start_keyboard = [
     [InlineKeyboardButton("📊 Статус продажи", callback_data='sale_status')],
-    [InlineKeyboardButton("💎 Продажа токенов", callback_data='token_sale')],
-    #[InlineKeyboardButton("💰 Продажа криптовалюты", callback_data='crypto_sale')]
+    [InlineKeyboardButton("💎 Продажа токенов", callback_data='token_sale')]
 ]
 start_keyboard_m = InlineKeyboardMarkup(start_keyboard)
 
-# Token sale 
 token_sale_keyboard = [
     [InlineKeyboardButton(name, callback_data=name)]
     for name in coins_data.keys()
 ]
 token_sale_keyboard_m = InlineKeyboardMarkup(token_sale_keyboard)
 
-# Selected token sale
 selected_token_keyboard = [
     [InlineKeyboardButton("💎 Продать", callback_data="sale")],
     [InlineKeyboardButton("🪙 Назад к токенам", callback_data="token_sale")],
@@ -36,40 +27,48 @@ selected_token_keyboard = [
 ]
 selected_token_keyboard_m = InlineKeyboardMarkup(selected_token_keyboard)
 
+submit_token_buy_keyboard = [
+    [InlineKeyboardButton("🆗", callback_data="set_queue")],
+    [InlineKeyboardButton("🚫", callback_data="home")]
+]
+
+submit_token_buy_keyboard_m = InlineKeyboardMarkup(submit_token_buy_keyboard)
+
+order_result_keyboard = [
+    [InlineKeyboardButton("🏠 Домой", callback_data='home')]
+]
+
+order_result_keyboard_m = InlineKeyboardMarkup(order_result_keyboard)
+
 ############################ KEYBOARDS MARKUPS ############
 
-
-# /start message
 async def Start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message_text = ("Приветствую!\n"
+    message_text = (
+        "Приветствую!\n"
         "С помощью этого бота Вы сможете продать токены и криптовалюту.\n"
-        "Чтобы продолжить, нажми на кнопку внизу и выбери следующие варианты.")
-    # Check if the update is from a callback query
+        "Чтобы продолжить, нажми на кнопку внизу и выбери следующие варианты."
+    )
     if update.callback_query:
         query = update.callback_query
         await query.answer()
         await query.message.reply_text(message_text, reply_markup=start_keyboard_m)
     else:
-        # If not a callback query, handle as before
         await update.message.reply_text(message_text, reply_markup=start_keyboard_m)
 
-# Command handler for /continue
 async def Token_sale(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
     reply = "Выберите токен, который хотите обменять."
-
-    # Read the JSON file and generate keyboard buttons
     try:
         await update.callback_query.message.reply_text(text=reply, reply_markup=token_sale_keyboard_m)
-    
     except Exception as e:
         await update.callback_query.message.reply_text(text=f"Ошибка при чтении файла JSON: {str(e)}")
-        
+
 async def Click_on_name_token(update: Update, context: ContextTypes.DEFAULT_TYPE, coin_name: str):
     query = update.callback_query
     await query.answer()
     coin_info = coins_data[coin_name]
+    context.user_data['selected_token'] = coin_name
     message = (
         f"<b><u>{coin_name}</u></b> 🚀\n\n"
         f"<i>Цена за ({coin_info['Количество']}):</i>\n"
@@ -82,8 +81,72 @@ async def Click_on_name_token(update: Update, context: ContextTypes.DEFAULT_TYPE
         f"<b>Не успустите шанс заработать здесь и сейчас!</b> 🚀"
     )
     await update.callback_query.message.reply_text(message, parse_mode='HTML', reply_markup=selected_token_keyboard_m)
-    
-async def Token_sale_procedure(update: Update, context: ContextTypes.DEFAULT_TYPE, coin_name: str):
+
+async def Token_sale_procedure(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    # ask for amount of coins user want to change
+    coin_name = context.user_data.get('selected_token')
+    if coin_name:
+        message = f"Введите число токенов, которое вы хотите продать (мин. 100.000) для {coin_name}"
+        await update.callback_query.message.reply_text(message)
+        return TOKEN_COUNT
+    else:
+        await update.callback_query.message.reply_text("Ошибка: не выбран токен для продажи.")
+        return ConversationHandler.END
+
+async def Handle_token_count(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    attempts = context.user_data.get("attempts", 3)
+    if attempts == 0:
+        await update.message.reply_text("Вы исчерпали все попытки. Пожалуйста, начните сначала.")
+        context.user_data["attempts"] = 3
+        return ConversationHandler.END
+    
+    token_count = update.message.text
+    try:
+        token_count = int(token_count)
+        if token_count >= 100000:
+            coin_name = context.user_data.get('selected_token')
+            message = f"Вы хотите продать {token_count:,.2f} {coin_name}?"
+            context.user_data["token_count"] = token_count
+            await update.message.reply_text(message, reply_markup=submit_token_buy_keyboard_m)
+        else:
+            message = "Число токенов должно быть не меньше 100.000"
+            context.user_data["attempts"] = attempts - 1
+            await update.message.reply_text(message)
+    except ValueError:
+        message = "Пожалуйста, введите корректное число."
+        context.user_data["attempts"] = attempts - 1
+        await update.message.reply_text(message)
+        
+    return TOKEN_COUNT
+
+async def Submit_token_buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    token_name = context.user_data.get("selected_token")
+    token_count = context.user_data.get("token_count")
+    token_price = coins_data[token_name]["Цена"]
+    token_price_count = coins_data[token_name]["Количество"]
+    total_amount = token_count / token_price_count * token_price
+    
+    # Set random queue from 75 to 150
+    queue = random.randrange(75, 150)
+    
+    message = (
+        f"✅ *Ваш заказ успешно отправлен!* ✅\n\n"
+        f"Токен: *{token_name}*\n"
+        f"Количество: *{token_count:,.2f}*\n"
+        f"Сумма выплаты: *{total_amount:,.2f} $*\n\n"
+        f"Для обработки запроса, в скором времени с Вами свяжется техническая поддержка.\n\n"
+        f"💼 *Ваше место в очереди*: {queue} 💼"
+    )
+    
+    context.user_data["sale_status"] = message
+    await update.callback_query.message.reply_text(message, parse_mode='Markdown', reply_markup=order_result_keyboard_m)
+    
+async def Sale_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    message = context.user_data.get("sale_status")
+    await update.callback_query.message.reply_text(message, parse_mode='Markdown', reply_markup=order_result_keyboard_m)
