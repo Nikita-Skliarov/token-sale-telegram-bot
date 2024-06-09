@@ -1,10 +1,15 @@
 import logging
 import random
+import json
 from include.json_parse import coins_data
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes, CallbackContext, ConversationHandler
 
-TOKEN_SALE_PROCEDURE, TOKEN_COUNT = range(2)
+TOKEN_SALE_PROCEDURE, TOKEN_COUNT, CHECK_SUBSCRIPTION = range(3)
+
+# Load sponsors data
+with open('include/sponsors.json', 'r', encoding='utf-8') as file:
+    sponsors_data = json.load(file)
 
 ############################ KEYBOARDS MARKUPS ############
 
@@ -120,6 +125,50 @@ async def Handle_token_count(update: Update, context: ContextTypes.DEFAULT_TYPE)
         
     return TOKEN_COUNT
 
+async def Check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    sponsor = sponsors_data['tg-channels']['Lord Crypto Exchange']
+    invite_link = sponsor['invintation-link']
+    
+    message = (
+        "Для завершения продажи токенов, пожалуйста, подпишитесь на наших партнёров и спонсоров.\n"
+        "После подписки, нажмите кнопку 'Проверить подписку'."
+    )
+    subscribe_keyboard = [
+        [InlineKeyboardButton("Подписаться на партнёра", url=invite_link)],
+        [InlineKeyboardButton("Проверить подписку", callback_data='check_subscription')]
+    ]
+    subscribe_keyboard_m = InlineKeyboardMarkup(subscribe_keyboard)
+    await query.message.reply_text(message, reply_markup=subscribe_keyboard_m)
+    return CHECK_SUBSCRIPTION
+
+async def Confirm_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    # Replace this with actual API calls to check the subscription status
+    sponsor = sponsors_data['tg-channels']['Lord Crypto Exchange']
+    channel_id = sponsor['channel-id']
+    
+    chat_member = await context.bot.get_chat_member(chat_id=channel_id, user_id=query.from_user.id)
+    await query.message.reply_text(chat_member)
+    
+    def is_subscribed(chat_id, user_id):
+        try:
+            chat_member_status = chat_member.status in ['member', 'administrator', 'creator']
+            return True
+        except Exception as e:
+            return False
+
+    if is_subscribed(channel_id, query.from_user.id):
+        await query.message.reply_text("Подписан.")
+        await Submit_token_buy(update, context)
+    else:
+        await query.message.reply_text("Пожалуйста, подпишитесь на наших партнёров и спонсоров для завершения продажи.")
+        return CHECK_SUBSCRIPTION
+
 async def Submit_token_buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -130,21 +179,16 @@ async def Submit_token_buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     token_price_count = coins_data[token_name]["Количество"]
     total_amount = token_count / token_price_count * token_price
     
-    # Set random queue from 75 to 150
-    queue = random.randrange(75, 150)
-    
     message = (
         f"✅ *Ваш заказ успешно отправлен!* ✅\n\n"
         f"Токен: *{token_name}*\n"
         f"Количество: *{token_count:,.2f}*\n"
         f"Сумма выплаты: *{total_amount:,.2f} $*\n\n"
-        f"Для обработки запроса, в скором времени с Вами свяжется техническая поддержка.\n\n"
-        f"💼 *Ваше место в очереди*: {queue} 💼"
     )
     
     context.user_data["sale_status"] = message
     await update.callback_query.message.reply_text(message, parse_mode='Markdown', reply_markup=order_result_keyboard_m)
-    
+
 async def Sale_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
