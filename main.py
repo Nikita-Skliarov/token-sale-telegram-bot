@@ -42,10 +42,6 @@ if __name__ == '__main__':
         )
         application.add_handler(token_handler)
     
-    # check for subs
-    #
-    #
-    
     # sell selected token 
     sell_selected_token_handler = CallbackQueryHandler(Sell_selected_token, pattern="sell_selected_token")
     application.add_handler(sell_selected_token_handler)
