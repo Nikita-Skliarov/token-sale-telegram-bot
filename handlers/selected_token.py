@@ -16,3 +16,5 @@ async def ShowSelectedCoin(update: Update, context: ContextTypes.DEFAULT_TYPE, t
             f"В наличии! 🎉"
         )
         await update.callback_query.message.reply_text(message, reply_markup=selected_token_keyboard_m, parse_mode="Markdown")
+    await update.callback_query.answer()
+    

@@ -14,3 +14,4 @@ async def Start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text(message_text, reply_markup=start_keyboard_m)
     else:
         await update.message.reply_text(message_text, reply_markup=start_keyboard_m)
+    await update.callback_query.answer()

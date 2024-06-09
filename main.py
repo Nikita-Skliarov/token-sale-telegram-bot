@@ -7,6 +7,7 @@ from handlers.start import Start
 from handlers.tokens import ShowTokens
 from handlers.selected_token import ShowSelectedCoin
 from handlers.sell_selected_token import Sell_selected_token
+from handlers.status import Status
 
 # config arrays + bot token
 from private.token import TOKEN
@@ -28,6 +29,10 @@ if __name__ == '__main__':
     # go home
     home_handler = CallbackQueryHandler(Start, pattern="home")
     application.add_handler(home_handler)
+    
+    # status
+    status_handler = CallbackQueryHandler(Status, pattern="status")
+    application.add_handler(status_handler)
     
     # show tokens 
     tokens_handler = CallbackQueryHandler(ShowTokens, pattern="token_sale")

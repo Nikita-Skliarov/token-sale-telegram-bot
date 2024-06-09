@@ -20,6 +20,7 @@ async def Sell_selected_token(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         context.user_data["status"] = message_text
         await update.callback_query.message.reply_text(message_text, reply_markup=sell_selected_token_keyboard_m, parse_mode="Markdown")
+    await update.callback_query.answer()
     
 
 

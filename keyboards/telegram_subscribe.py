@@ -1,7 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from config import CHANNELS
 
-# Create the subscription buttons
 telegram_subscribe_keyboard = [
     [InlineKeyboardButton(channel[0], url=channel[1])]
     for channel in CHANNELS
