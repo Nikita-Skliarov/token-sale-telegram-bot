@@ -5,6 +5,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 # handlers
 from handlers.start import Start
 from handlers.tokens import ShowTokens
+from handlers.selected_token import ShowSelectedCoin
 
 # config arrays + bot token
 from private.token import TOKEN
@@ -19,12 +20,25 @@ logging.basicConfig(
 if __name__ == '__main__':
     application = ApplicationBuilder().token(TOKEN).build()
     
-    ### make handlers
+    # /start
     start_handler = CommandHandler('start', Start)
-    tokens_handler = CallbackQueryHandler(ShowTokens, pattern="token_sale")
-    
-    ### append handlers to application
     application.add_handler(start_handler)
+    
+    # go home
+    home_handler = CallbackQueryHandler(Start, pattern="home")
+    application.add_handler(home_handler)
+    
+    # show tokens 
+    tokens_handler = CallbackQueryHandler(ShowTokens, pattern="token_sale")
     application.add_handler(tokens_handler)
+    
+    # selected token
+    for token in TOKENS:
+        pattern = token[0]
+        token_handler = CallbackQueryHandler(
+            lambda update, context, token_name=pattern: ShowSelectedCoin(update, context, token_name),
+            pattern=pattern
+        )
+        application.add_handler(token_handler)
     
     application.run_polling()
