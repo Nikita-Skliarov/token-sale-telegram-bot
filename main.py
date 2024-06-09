@@ -6,6 +6,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 from handlers.start import Start
 from handlers.tokens import ShowTokens
 from handlers.selected_token import ShowSelectedCoin
+from handlers.sell_selected_token import Sell_selected_token
 
 # config arrays + bot token
 from private.token import TOKEN
@@ -40,5 +41,13 @@ if __name__ == '__main__':
             pattern=pattern
         )
         application.add_handler(token_handler)
+    
+    # check for subs
+    #
+    #
+    
+    # sell selected token 
+    sell_selected_token_handler = CallbackQueryHandler(Sell_selected_token, pattern="sell_selected_token")
+    application.add_handler(sell_selected_token_handler)
     
     application.run_polling()
