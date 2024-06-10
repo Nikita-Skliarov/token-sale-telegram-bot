@@ -15,7 +15,7 @@ async def Sell_selected_token(update: Update, context: ContextTypes.DEFAULT_TYPE
     else:
         selected_token = context.user_data.get("selected_token")
         message_text = (
-        f"Вы выбрали *{selected_token}* как токен, который хотите продать. \n"
+        f"Вы выбрали *{selected_token}* как то, что Вы хотите продать. \n"
         f"В ближайшее время с вами свяжется наша техподдержка, и вы сможете указать количество и осуществить продажу😉🥳."
         )
         context.user_data["status"] = message_text
