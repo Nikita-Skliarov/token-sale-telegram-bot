@@ -26,13 +26,15 @@ if __name__ == '__main__':
     start_handler = CommandHandler('start', Start)
     application.add_handler(start_handler)
     
-    # go home
+    # go home and
     home_handler = CallbackQueryHandler(Start, pattern="home")
     application.add_handler(home_handler)
     
-    # status
+    # status and /status
     status_handler = CallbackQueryHandler(Status, pattern="status")
+    status_command_handler = CommandHandler("status", Status)
     application.add_handler(status_handler)
+    application.add_handler(status_command_handler)
     
     # show tokens 
     tokens_handler = CallbackQueryHandler(ShowTokens, pattern="token_sale")
