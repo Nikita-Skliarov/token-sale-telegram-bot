@@ -53,24 +53,10 @@ To create a Telegram bot, follow these steps:
     - Save the API token provided by `BotFather`.
 
 2. **Set Up Environment Variables:**
-    - Create a `.env` file in the root of your project.
+    - Create a `private/token.py` file in the root of your project.
     - Add the following lines, replacing the placeholders with your actual values:
-        ```env
-        TELEGRAM_API_KEY=your_telegram_api_key
-        CHANNEL_LIST=channel1,channel2,channel3
-        ```
-
-3. **Update Bot Configuration:**
-    - Open `config.py` (or the relevant configuration file in your project).
-    - Ensure the environment variables are loaded correctly, for example:
-        ```python
-        import os
-        from dotenv import load_dotenv
-
-        load_dotenv()
-
-        TELEGRAM_API_KEY = os.getenv('TELEGRAM_API_KEY')
-        CHANNEL_LIST = os.getenv('CHANNEL_LIST').split(',')
+        ```py
+        TOKEN="YOUR TOKEN"
         ```
 
 ---
