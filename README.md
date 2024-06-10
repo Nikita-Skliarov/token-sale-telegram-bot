@@ -23,7 +23,6 @@ To install and run the Telegram bot, follow these steps:
     ```
 
 3. **Set Up Environment Variables:**
-    - Create a `.env` file in the project root directory.
     - Add the necessary environment variables such as API keys and channel lists (see [Tutorial: Creating a Telegram Bot](#tutorial-creating-a-telegram-bot)).
 
 4. **Run the Bot:**
