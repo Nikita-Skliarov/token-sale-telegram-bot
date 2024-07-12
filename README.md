@@ -5,7 +5,6 @@ This README provides an overview of the Telegram bot designed to facilitate toke
 ## Features
 
 - **Subscription Verification:** The bot checks if users are subscribed to a list of channels before processing their orders.
-- **Token Sale Updates:** Users receive real-time updates on token sales and related information.
 
 ## Installation
 
